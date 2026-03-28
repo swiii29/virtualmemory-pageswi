@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced OS Memory Architect | Nirma University Project</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background: #020617; color: #f8fafc; }
+        .glass { background: rgba(30, 41, 59, 0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+        .frame-slot { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .hit-pulse { animation: hitPulse 0.7s ease-out; }
+        @keyframes hitPulse { 0% { box-shadow: 0 0 0 0px rgba(16, 185, 129, 0.4); } 100% { box-shadow: 0 0 0 20px rgba(16, 185, 129, 0); } }
+        .miss-shake { animation: shake 0.4s ease-in-out; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-800 bg-gradient-to-r from-blue-400 to-emerald-300 bg-clip-text text-transparent italic">
+                    Memory Management Architect
+                </h1>
+                <p class="text-slate-400 text-sm">Virtual Memory & Page Replacement Simulator</p>
+            </div>
+            <div class="flex gap-3">
+                <button onclick="loadBelady()" class="bg-slate-800 hover:bg-slate-700 px-4 py-2 rounded-xl text-[10px] font-bold border border-slate-700 transition uppercase tracking-wider">Test Belady's Anomaly</button>
+                <button onclick="window.print()" class="bg-blue-600 hover:bg-blue-500 px-4 py-2 rounded-xl text-[10px] font-bold transition shadow-lg shadow-blue-500/20 uppercase tracking-wider">Export Report</button>
+            </div>
+        </div>
+
+        <div class="glass p-6 rounded-3xl shadow-2xl mb-8 grid grid-cols-1 lg:grid-cols-5 gap-6 items-end">
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Frame Capacity</label>
+                <select id="frameCount" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-blue-400 font-bold outline-none">
+                    <option value="3">3 Slots (Standard)</option>
+                    <option value="4">4 Slots (Expanded)</option>
+                    <option value="5">5 Slots (Performance)</option>
+                </select>
+            </div>
+            <div>
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Animate Logic</label>
+                <select id="algoSelect" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-emerald-400 font-bold outline-none">
+                    <option value="FIFO">FIFO (Oldest First)</option>
+                    <option value="LRU">LRU (Least Recent)</option>
+                </select>
+            </div>
+            <div class="lg:col-span-2">
+                <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Reference Page Stream</label>
+                <input type="text" id="seq" value="7, 0, 1, 2, 0, 3, 0, 4, 2, 3, 0" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl outline-none focus:border-blue-500 transition font-mono text-sm">
+            </div>
+            <button onclick="runAdvancedSim()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all transform active:scale-95">
+                Initialize Simulation
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div class="lg:col-span-8 space-y-8">
+                <div class="glass p-8 rounded-3xl border border-blue-500/20">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Hardware Logic: RAM Frames</h3>
+                        <div id="algoTag" class="px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-full border border-blue-500/20 uppercase">Waiting...</div>
+                    </div>
+                    <div id="framesContainer" class="flex flex-wrap gap-6 min-h-[140px] justify-center lg:justify-start"></div>
+                </div>
+
+                <div class="glass p-6 rounded-3xl overflow-hidden">
+                    <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Comparative Efficiency Analysis</h3>
+                    <div class="overflow-x-auto text-xs md:text-sm">
+                        <table class="w-full text-left">
+                            <thead class="text-slate-500 border-b border-slate-700">
+                                <tr>
+                                    <th class="pb-3">Algorithm</th>
+                                    <th class="pb-3 text-center">Faults</th>
+                                    <th class="pb-3 text-center">Hits</th>
+                                    <th class="pb-3 text-center">Hit Ratio</th>
+                                    <th class="pb-3 text-right">Disk Penalty</th>
+                                </tr>
+                            </thead>
+                            <tbody id="compareBody" class="text-slate-300">
+                                <tr><td colspan="5" class="py-8 text-center text-slate-600 italic">Initialize simulation to compare algorithmic performance...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pb-8">
+                    <div class="bg-emerald-500/5 border border-emerald-500/10 p-5 rounded-2xl">
+                        <h4 class="text-emerald-400 font-bold text-xs mb-2 tracking-wide uppercase">Real-World Latency</h4>
+                        <p class="text-[10px] text-slate-400 leading-relaxed italic">
+                            A "Page Fault" (MISS) forces the CPU to wait for the SSD/HDD. This takes ~5-10ms, while a "Hit" takes <10ns. Efficient algorithms like LRU (used in <b>Linux/MacOS</b>) reduce these penalties drastically.
+                        </p>
+                    </div>
+                    <div class="bg-blue-500/5 border border-blue-500/10 p-5 rounded-2xl">
+                        <h4 class="text-blue-400 font-bold text-xs mb-2 tracking-wide uppercase">Industrial Use</h4>
+                        <p class="text-[10px] text-slate-400 leading-relaxed italic">
+                            <b>LRU:</b> Used in database caching (Redis) and browser history management.<br>
+                            <b>Optimal:</b> Theoretical maximum performance; used by researchers to evaluate new algorithms.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-4 space-y-6">
+                <div class="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-3xl shadow-xl border border-white/10">
+                    <p class="text-blue-100 text-[10px] uppercase font-bold tracking-widest">Calculated Disk I/O Wait</p>
+                    <h2 id="latencyVal" class="text-4xl font-800 my-1">0 ms</h2>
+                    <div class="w-full bg-white/10 h-1 rounded-full mt-2 overflow-hidden">
+                        <div id="latencyProgress" class="bg-blue-300 h-full transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="glass p-6 rounded-3xl h-[420px] flex flex-col">
+                    <h3 class="text-xs font-bold text-slate-500 mb-4 uppercase tracking-widest">Kernel Event Stream</h3>
+                    <div id="log" class="flex-1 overflow-y-auto font-mono text-[10px] text-slate-400 space-y-2 pr-2">
+                        <div class="text-slate-600 italic">System ready. Select logic and press Initialize...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isRunning = false;
+
+        function loadBelady() {
+            document.getElementById('seq').value = "1, 2, 3, 4, 1, 2, 5, 1, 2, 3, 4, 5";
+            alert("Belady's Anomaly sequence loaded. Test with FIFO using 3 vs 4 frames.");
+        }
+
+        async function runAdvancedSim() {
+            if(isRunning) return;
+            isRunning = true;
+
+            const cap = parseInt(document.getElementById('frameCount').value);
+            const algoType = document.getElementById('algoSelect').value;
+            const raw = document.getElementById('seq').value;
+            const pages = raw.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
+            
+            if(pages.length === 0) {
+                alert("Please enter a valid page sequence.");
+                isRunning = false;
+                return;
+            }
+
+            // UI Header Tag Update
+            const tag = document.getElementById('algoTag');
+            tag.innerText = `${algoType} ACTIVE`;
+            tag.className = algoType === 'LRU' ? 
+                "px-3 py-1 bg-emerald-500/10 text-emerald-400 text-[10px] font-bold rounded-full border border-emerald-500/20 uppercase" :
+                "px-3 py-1 bg-blue-500/10 text-blue-400 text-[10px] font-bold rounded-full border border-blue-500/20 uppercase";
+
+            // Static Performance Math
+            const fifo_f = calculateFaults('FIFO', pages, cap);
+            const lru_f = calculateFaults('LRU', pages, cap);
+            const opt_f = calculateFaults('OPTIMAL', pages, cap);
+            updateTable(fifo_f, lru_f, opt_f, pages.length);
+            
+            // Start Visual Animation
+            await animateProcess(pages, cap, algoType);
+            isRunning = false;
+        }
+
+        function calculateFaults(type, pages, cap) {
+            let frames = [];
+            let f = 0;
+            pages.forEach((p, i) => {
+                if (!frames.includes(p)) {
+                    f++;
+                    if (frames.length < cap) frames.push(p);
+                    else {
+                        if (type === 'FIFO') frames.shift(), frames.push(p);
+                        else if (type === 'LRU') {
+                            const past = pages.slice(0, i);
+                            const victim = frames.reduce((a, b) => past.lastIndexOf(a) < past.lastIndexOf(b) ? a : b);
+                            frames[frames.indexOf(victim)] = p;
+                        } else {
+                            const future = pages.slice(i + 1);
+                            let v = frames.find(f => !future.includes(f));
+                            if (!v) v = frames.reduce((a, b) => future.indexOf(a) > future.indexOf(b) ? a : b);
+                            frames[frames.indexOf(v)] = p;
+                        }
+                    }
+                }
+            });
+            return f;
+        }
+
+        function updateTable(f, l, o, total) {
+            const body = document.getElementById('compareBody');
+            const data = [
+                { n: 'FIFO (First-In First-Out)', flt: f, color: 'text-slate-400' },
+                { n: 'LRU (Least Recently Used)', flt: l, color: 'text-emerald-400 font-bold' },
+                { n: 'Optimal (Theoretical)', flt: o, color: 'text-blue-400' }
+            ];
+            body.innerHTML = data.map(d => `
+                <tr class="border-b border-slate-800/50">
+                    <td class="py-4 ${d.color}">${d.n}</td>
+                    <td class="text-center text-red-400">${d.flt}</td>
+                    <td class="text-center text-emerald-400">${total - d.flt}</td>
+                    <td class="text-center">${(((total - d.flt)/total)*100).toFixed(1)}%</td>
+                    <td class="text-right text-slate-500">${d.flt * 5} ms</td>
+                </tr>
+            `).join('');
+        }
+
+        async function animateProcess(pages, cap, type) {
+            const container = document.getElementById('framesContainer');
+            const log = document.getElementById('log');
+            const latencyBox = document.getElementById('latencyVal');
+            const prog = document.getElementById('latencyProgress');
+
+            container.innerHTML = '';
+            log.innerHTML = `<div class="text-blue-400 font-bold border-b border-blue-900 pb-1 mb-2 tracking-tighter uppercase italic">MMU Initialized: Using ${type} Logic</div>`;
+            
+            let frames = [];
+            let faults = 0;
+
+            for(let i=0; i<cap; i++) {
+                container.innerHTML += `<div id="slot-${i}" class="w-24 h-32 bg-slate-900 border-2 border-slate-800 rounded-3xl flex flex-col items-center justify-center frame-slot relative shadow-inner">
+                    <span class="text-[8px] text-slate-600 absolute top-2 uppercase font-bold">Slot ${i}</span>
+                    <span id="val-${i}" class="text-3xl font-800 text-slate-700">-</span>
+                </div>`;
+            }
+
+            for(let i=0; i<pages.length; i++) {
+                const p = pages[i];
+                let hitIdx = frames.indexOf(p);
+                
+                if(hitIdx !== -1) {
+                    const el = document.getElementById(`slot-${hitIdx}`);
+                    el.classList.add('border-emerald-500', 'bg-emerald-500/10', 'hit-pulse');
+                    log.innerHTML += `<div>[T+${i*10}ms] <span class="text-emerald-500 font-bold">HIT:</span> Page ${p} served from RAM</div>`;
+                    setTimeout(() => el.classList.remove('border-emerald-500', 'bg-emerald-500/10', 'hit-pulse'), 800);
+                } else {
+                    faults++;
+                    latencyBox.innerText = (faults * 5) + ' ms';
+                    prog.style.width = Math.min((faults/pages.length)*100, 100) + '%';
+                    
+                    let target;
+                    if(frames.length < cap) {
+                        target = frames.length;
+                        frames.push(p);
+                    } else {
+                        let victim;
+                        if(type === 'FIFO') {
+                            victim = frames[0];
+                        } else {
+                            const past = pages.slice(0, i);
+                            victim = frames.reduce((a, b) => past.lastIndexOf(a) < past.lastIndexOf(b) ? a : b);
+                        }
+                        target = frames.indexOf(victim);
+                        frames[target] = p;
+                    }
+                    
+                    updateValues(frames, cap);
+                    const el = document.getElementById(`slot-${target}`);
+                    el.classList.add('border-red-500', 'bg-red-500/10', 'miss-shake');
+                    log.innerHTML += `<div>[T+${i*10}ms] <span class="text-red-500 font-bold">MISS:</span> Page ${p} → Disk I/O Swap</div>`;
+                    setTimeout(() => el.classList.remove('border-red-500', 'bg-red-500/10', 'miss-shake'), 800);
+                }
+                log.scrollTop = log.scrollHeight;
+                await new Promise(r => setTimeout(r, 1000));
+            }
+            log.innerHTML += `<div class="mt-4 text-emerald-400 font-bold uppercase tracking-widest text-center border-t border-slate-800 pt-2">Task Complete</div>`;
+        }
+
+        function updateValues(f, c) {
+            for(let i=0; i<c; i++) {
+                const text = document.getElementById(`val-${i}`);
+                text.innerText = f[i] !== undefined ? f[i] : '-';
+                text.className = f[i] !== undefined ? "text-3xl font-800 text-white" : "text-3xl font-800 text-slate-700";
+            }
+        }
+    </script>
+</body>
+</html>
